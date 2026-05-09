@@ -4,6 +4,26 @@ import { createError } from '../utils/error.js'
 import bcrypt from 'bcryptjs'
 
 
+export const checkEmail = async (req, res, next) => {
+    try {
+        const { email } = req.query
+        const exists = !!(await User.findOne({ email }))
+        res.status(200).json({ exists })
+    } catch (err) {
+        next(createError(500, err.message))
+    }
+}
+
+export const checkUsername = async (req, res, next) => {
+    try {
+        const { username } = req.query
+        const exists = !!(await User.findOne({ username }))
+        res.status(200).json({ exists })
+    } catch (err) {
+        next(createError(500, err.message))
+    }
+}
+
 export const getUsers = async (req, res, next) => {
     try {
 

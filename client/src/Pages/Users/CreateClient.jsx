@@ -1,8 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createEmployee } from "../../redux/action/user";
+import { createClient } from "../../redux/action/user";
 import { checkEmail, checkUsername } from "../../redux/api";
-import toast from "react-hot-toast";
 import {
   Divider,
   Dialog,
@@ -16,41 +15,41 @@ import { PiNotepad, PiXLight } from "react-icons/pi";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import toast from "react-hot-toast";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName:  z.string().min(1, "Last name is required"),
   username:  z.string().min(3, "Username must be at least 3 characters"),
-  password:  z.string().min(6, "Password must be at least 6 characters"),
+  email:     z.string().email("Invalid email address"),
   phone:     z.string().min(7, "Phone number is required"),
-  email:     z.string().email("Invalid email").optional().or(z.literal("")),
+  city:      z.string().optional(),
+  CNIC:      z.string().optional(),
 });
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
 
-const CreateEmployee = ({ open, setOpen, scroll }) => {
+const CreateClient = ({ open, setOpen, scroll }) => {
   const { isFetching } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { firstName: "", lastName: "", username: "", password: "", phone: "", email: "" },
+    defaultValues: { firstName: "", lastName: "", username: "", email: "", phone: "", city: "", CNIC: "" },
   });
 
   const onSubmit = async (data) => {
     try {
+      const { data: emailCheck } = await checkEmail(data.email);
+      if (emailCheck.exists) { toast.error("Email already in use"); return; }
+    } catch (_) {}
+    try {
       const { data: usernameCheck } = await checkUsername(data.username);
       if (usernameCheck.exists) { toast.error("Username already in use"); return; }
     } catch (_) {}
-    if (data.email) {
-      try {
-        const { data: emailCheck } = await checkEmail(data.email);
-        if (emailCheck.exists) { toast.error("Email already in use"); return; }
-      } catch (_) {}
-    }
-    dispatch(createEmployee(data, setOpen));
+    dispatch(createClient(data, setOpen));
     reset();
   };
 
@@ -71,7 +70,7 @@ const CreateEmployee = ({ open, setOpen, scroll }) => {
         maxWidth="sm"
         aria-describedby="alert-dialog-slide-description">
         <DialogTitle className="flex items-center justify-between">
-          <div className="text-sky-400 font-primary">Add New Employee</div>
+          <div className="text-sky-400 font-primary">Add New Client</div>
           <div className="cursor-pointer" onClick={handleClose}>
             <PiXLight className="text-[25px]" />
           </div>
@@ -80,7 +79,7 @@ const CreateEmployee = ({ open, setOpen, scroll }) => {
           <div className="flex flex-col gap-2 p-3 text-gray-500 font-primary">
             <div className="text-xl flex justify-start items-center gap-2 font-normal">
               <PiNotepad size={23} />
-              <span>Employee Details</span>
+              <span>Client Details</span>
             </div>
             <Divider />
             <table className="mt-4">
@@ -106,19 +105,25 @@ const CreateEmployee = ({ open, setOpen, scroll }) => {
                 <tr>
                   <td className="pb-4 text-lg">Email</td>
                   <td className="pb-4">
-                    <TextField size="small" fullWidth placeholder="Optional" {...register("email")} error={!!errors.email} helperText={errors.email?.message} />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="flex items-start pt-2 text-lg">Password</td>
-                  <td className="pb-4">
-                    <TextField type="password" size="small" fullWidth {...register("password")} error={!!errors.password} helperText={errors.password?.message} />
+                    <TextField size="small" fullWidth {...register("email")} error={!!errors.email} helperText={errors.email?.message} />
                   </td>
                 </tr>
                 <tr>
                   <td className="flex items-start pt-2 text-lg">Phone</td>
                   <td className="pb-4">
                     <TextField size="small" fullWidth {...register("phone")} error={!!errors.phone} helperText={errors.phone?.message} />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="pb-4 text-lg">City</td>
+                  <td className="pb-4">
+                    <TextField size="small" fullWidth placeholder="Optional" {...register("city")} />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="pb-4 text-lg">CNIC</td>
+                  <td className="pb-4">
+                    <TextField size="small" fullWidth placeholder="Optional" {...register("CNIC")} />
                   </td>
                 </tr>
               </tbody>
@@ -143,4 +148,4 @@ const CreateEmployee = ({ open, setOpen, scroll }) => {
   );
 };
 
-export default CreateEmployee;
+export default CreateClient;

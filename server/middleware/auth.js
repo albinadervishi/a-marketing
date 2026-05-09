@@ -46,6 +46,19 @@ export const verifyManager = (req, res, next) => {
     }
 };
 
+export const verifyIsSameUser = (req, res, next) => {
+    try {
+        const allowedRoles = ['manager', 'super_admin'];
+        if (allowedRoles.includes(req.user.role) || req.user._id === req.params.userId) {
+            next();
+        } else {
+            next(createError(403, 'Access denied'));
+        }
+    } catch (err) {
+        next(createError(500, err.message));
+    }
+};
+
 export const verifySuperAdmin = (req, res, next) => {
     try {
         verifyToken(req, res, () => {
