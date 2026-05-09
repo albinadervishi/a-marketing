@@ -155,6 +155,20 @@ export const createEmployee = async (req, res, next) => {
     }
 }
 
+export const updateUser = async (req, res, next) => {
+    try {
+        const { userId } = req.params
+        const findedUser = await User.findById(userId)
+        if (!findedUser) return next(createError(404, 'User not found'))
+
+        const { role, password, ...allowedUpdates } = req.body
+        const updatedUser = await User.findByIdAndUpdate(userId, allowedUpdates, { new: true })
+        res.status(200).json({ result: updatedUser, message: 'User updated successfully', success: true })
+    } catch (err) {
+        next(createError(500, err.message))
+    }
+}
+
 export const updateRole = async (req, res, next) => {
     try {
 
